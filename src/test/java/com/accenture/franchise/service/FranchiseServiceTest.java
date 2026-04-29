@@ -63,8 +63,8 @@ class FranchiseServiceTest {
         StepVerifier.create(service.getTopStockProducts("662e84"))
                 .expectNextMatches(list -> {
                     return list.size() == 1 && 
-                           list.get(0).getProductName().equals("Monitor") &&
-                           list.get(0).getStock() == 50;
+                           list.get(0).getProduct().getName().equals("Monitor") &&
+                           list.get(0).getProduct().getStock() == 50;
                 })
                 .verifyComplete();
     }
@@ -78,5 +78,30 @@ class FranchiseServiceTest {
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                         throwable.getMessage().contains("No pudimos encontrar"))
                 .verify();
+    }
+
+    @Test
+    void updateStockTest() {
+        /* chequeo que el stock sí cambie en el producto que toca */
+        when(repository.findById("662e84")).thenReturn(Mono.just(franchise));
+        when(repository.save(any())).thenReturn(Mono.just(franchise));
+
+        com.accenture.franchise.dto.StockUpdateRequest req = new com.accenture.franchise.dto.StockUpdateRequest();
+        req.setStock(100);
+
+        StepVerifier.create(service.updateStock("662e84", "Sede Bogota", "p1", req))
+                .expectNextMatches(f -> f.getBranches().get(0).getProducts().get(0).getStock() == 100)
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteProductTest() {
+        /* acá pruebo que si borro un producto la lista se actualice de una */
+        when(repository.findById("662e84")).thenReturn(Mono.just(franchise));
+        when(repository.save(any())).thenReturn(Mono.just(franchise));
+
+        StepVerifier.create(service.deleteProduct("662e84", "Sede Bogota", "p1"))
+                .expectNextMatches(f -> f.getBranches().get(0).getProducts().size() == 1)
+                .verifyComplete();
     }
 }
