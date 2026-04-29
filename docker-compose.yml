@@ -1,0 +1,32 @@
+services:
+  app:
+    # Nuestra API de Spring Boot. Se conecta a Mongo usando el nombre del servicio
+    build: .
+    container_name: franchise-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/franchisedb
+    depends_on:
+      - mongo
+    networks:
+      - franchise-network
+
+  mongo:
+    # Base de datos NoSQL. Usamos la imagen oficial de Mongo 6
+    image: mongo:6
+    container_name: franchise-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - franchise-network
+
+networks:
+  franchise-network:
+    driver: bridge
+
+volumes:
+  # Volumen persistente para que no se borren los datos al apagar los contenedores
+  mongo_data:
